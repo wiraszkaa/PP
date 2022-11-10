@@ -38,21 +38,21 @@ type person = {
   age: int; 
   gender: string; 
   shoe: float
-  };;
+};;
 let xyz = {
   name = "Xyz";
   surname = "Zyx";
   age = 20;
   gender = "male";
   shoe = 42.5;
-  };;
+};;
 let abc = {
   name = "Abc";
   surname = "Cba";
   age = 25;
   gender = "female";
   shoe = 40.;
-  };;
+};;
 
 type partnership = {first: person; second: person};;
 let partners = {first = xyz; second = abc};;
@@ -87,6 +87,32 @@ let nextDay d =
   | Sunday -> Monday;;
 nextDay pon;;
 
-type just;;
-type nothing;;
-type ('a, 'b) maybe = Left of just | Right of nothing;;
+type 'a maybe = Just of 'a | Nothing;;
+let safeHead xs =
+  match xs with
+  | [] -> Nothing
+  | h::tl -> Just(h);;
+safeHead [];;
+safeHead [1; 2; 3; 4];;
+
+type cuboid = { x: float; y: float; z: float };;
+type cone = { r: float; h: float };;
+type sphere = { r: float };;
+type cylinder = { r: float; h: float };;
+type 'a solidFigure = Cuboid of cuboid | Cone of cone | Sphere of sphere | Cylinder of cylinder;;
+
+let volume f =
+  match f with
+  | Cuboid c -> c.x *. c.y *. c.z
+  | Cone c -> (Float.pi *. c.r ** 2. *. c.h) /. 3.
+  | Sphere b -> (4. *. Float.pi *. b.r ** 2.) /. 3.
+  | Cylinder c -> Float.pi *. c.r ** 2. *. c.h;;
+
+let cube = Cuboid({x = 1.; y = 1.; z = 1.});;
+volume cube;;
+let cone = Cone({r = 1.; h = 1.});;
+volume cone;;
+let sphere = Sphere({r = 1.});;
+volume sphere;;
+let cylinder = Cylinder({r = 1.; h = 1.});;
+volume cylinder;;
