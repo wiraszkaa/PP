@@ -49,17 +49,17 @@ let stream_head (s: ('a sequence)): 'a =
   match s with
   | Cons (h, t) -> h;;
 stream_head (bell 4 2);;
-let stream_tail (s: ('a sequence)): (unit -> 'a sequence) =
+let stream_thunk (s: ('a sequence)): (unit -> 'a sequence) =
   match s with
   | Cons (h, t) -> t;;
-let thunk = stream_tail (bell 4 2);;
+let thunk = stream_thunk (bell 4 2);;
 thunk ();;
 
 let stream_list (s: 'a sequence) n =
   let rec listHelper s n acc =
     match n with
     | 0 -> acc
-    | n -> let thunk = stream_tail s in listHelper (thunk()) (n - 1) (acc@[stream_head s]) in
+    | n -> let thunk = stream_thunk s in listHelper (thunk()) (n - 1) (acc@[stream_head s]) in
     listHelper s n [];;
 stream_list (bell 2 2) 5;;
 
@@ -68,7 +68,7 @@ let stream_odd_list (s: 'a sequence) n =
   let rec listHelper s n acc =
     match n with
     | 0 -> acc
-    | n -> let thunk = stream_tail s in if n mod 2 = 0 then 
+    | n -> let thunk = stream_thunk s in if n mod 2 = 0 then 
       listHelper (thunk ()) (n - 1) (acc@[stream_head s]) else 
         listHelper (thunk ()) (n - 1) acc in
     listHelper s n [];;
@@ -77,14 +77,14 @@ stream_odd_list (bell 2 2) 5;;
 let rec stream_pop (s: 'a sequence) n =
   match n with
   | 0 -> s
-  | n -> let thunk = stream_tail s in stream_pop (thunk ()) (n - 1);;
+  | n -> let thunk = stream_thunk s in stream_pop (thunk ()) (n - 1);;
 stream_list (stream_pop (bell 2 2) 2) 3;;
 
 let stream_combine (s1: 'a sequence) (s2: 'a sequence) n =
   let rec combineHelper (s1: 'a sequence) (s2: 'a sequence) n acc =
     match n with
     | 0 -> acc
-    | n -> let t1 = stream_tail s1 and t2 = stream_tail s2 in 
+    | n -> let t1 = stream_thunk s1 and t2 = stream_thunk s2 in 
     combineHelper (t1 ()) (t2 ()) (n - 1) (acc@[(stream_head s1, stream_head s2)]) in
     combineHelper s1 s2 n [];;
 stream_combine (natural 1) (bell 2 2) 4;;
