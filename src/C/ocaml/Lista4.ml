@@ -79,6 +79,6 @@ let depthSearch (Graph g) v =
   let rec searchHelper q acc =
     match q with
     | [] -> acc
-    | h::tl -> if List.mem h acc then searchHelper tl acc else searchHelper ((g h)@q) (h::acc) in
+    | h::tl -> if List.mem h acc then searchHelper tl acc else searchHelper ((g h)@tl) (h::acc) in
       List.rev (searchHelper [v] []);;
 depthSearch g 4;;

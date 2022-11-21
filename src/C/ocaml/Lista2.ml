@@ -23,8 +23,8 @@ let root3 x =
   if x > 1.0 then rootHelper (x /. 3.0, x) else rootHelper (x, x);;
 root3 27.0;;
 
-let [_ ; _ ; x ; _ ; _] = [-2; -1; 0; 1; 2];;
-let [_; (x, _)] = [(1, 2); (0, 1)];;
+(* let [_ ; _ ; x ; _ ; _] = [-2; -1; 0; 1; 2];; *)
+(* let [_; (x, _)] = [(1, 2); (0, 1)];; *)
 
 let rec initSegment (x, y) =
   match (x, y) with
