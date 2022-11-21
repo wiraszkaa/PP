@@ -38,7 +38,7 @@ memoized_fib 3;;
 
 let lazy_s = lazy (stirling 200 7);;
 print_string "Hello, It's working";;
-print_int (Lazy.force lazy_s);;
+(* print_int (Lazy.force lazy_s);; *)
 
 
 type 'a sequence = Cons of 'a * (unit -> 'a sequence);;
@@ -88,3 +88,8 @@ let stream_combine (s1: 'a sequence) (s2: 'a sequence) n =
     combineHelper (t1 ()) (t2 ()) (n - 1) (acc@[(stream_head s1, stream_head s2)]) in
     combineHelper s1 s2 n [];;
 stream_combine (natural 1) (bell 2 2) 4;;
+
+let rec stream_map (s: 'a sequence) f =
+  match s with
+  | Cons (h, t) -> Cons (f h, fun unit -> stream_map (t()) f);;
+stream_list (stream_map (natural 3) (fun x -> x * x)) 4;;
