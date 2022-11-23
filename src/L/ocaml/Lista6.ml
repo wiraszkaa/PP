@@ -2,21 +2,22 @@ let rec stirling n m =
   match (n, m) with
   | (_, 1) -> 1
   | (n, m) when n = m -> 1 
-  | (n, m) -> stirling (n - 1) (m - 1) + n * stirling (n - 1) m;;
+  | (n, m) -> stirling (n - 1) (m - 1) + m * stirling (n - 1) m;;
 
-let rec memoized_stirling n m =
-  let memory = Hashtbl.create 10 in
-  match (n, m) with
-  | (_, 1) -> 1
-  | (n, m) when n = m -> 1 
-  | (n, m) -> if Hashtbl.mem memory (n, m) then 
-    Hashtbl.find memory (n, m) else 
-      let result = memoized_stirling (n - 1) (m - 1) + n * memoized_stirling (n - 1) m in
-      Hashtbl.add memory (n, m) result;
-      result;;
+let memoized_stirling n m =
+  let rec memoHelper n m memo =
+    match (n, m) with
+    | (_, 1) -> 1
+    | (n, m) when n = m -> 1 
+    | (n, m) -> if Hashtbl.mem memo (n, m) then 
+    Hashtbl.find memo (n, m) else 
+      let result = memoHelper (n - 1) (m - 1) memo + m * memoHelper (n - 1) m memo in
+      Hashtbl.add memo (n, m) result;
+      result in
+      memoHelper n m (Hashtbl.create 10);;
 
-stirling 10 2;;
-memoized_stirling 10 2;;
+stirling 100 5;;
+memoized_stirling 10 5;;
 
 
 let make_memoize f =
@@ -31,7 +32,6 @@ let rec fib x =
   | 0 -> 0
   | 1 -> 1
   | _ -> fib (x - 1) + fib (x - 2);;
-
 let memoized_fib = make_memoize fib;;
 memoized_fib 3;;
 

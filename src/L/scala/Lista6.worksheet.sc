@@ -6,25 +6,27 @@ def stirling (n: Int, m: Int): Int =
     (n, m) match {
         case (_, 1) => 1
         case (n, m) if n == m => 1
-        case (n, m) => stirling (n - 1, m - 1) + n * stirling (n - 1, m)
+        case (n, m) => stirling (n - 1, m - 1) + m * stirling (n - 1, m)
     }
 
 
 def memoized_stirling (n: Int, m: Int): Int = {
     val memory = new HashMap[(Int, Int), Int]()
-    (n, m) match {
-        case (_, 1) => 1
-        case (n, m) if n == m => 1
-        case (n, m) => if memory.contains((n, m)) then memory.getOrElse((n, m), -1)
+    def memoHelper (n: Int, m: Int, memo: HashMap[(Int, Int), Int]): Int =
+        (n, m) match {
+            case (_, 1) => 1
+            case (n, m) if n == m => 1
+            case (n, m) => if memo.contains((n, m)) then memo.getOrElse((n, m), -1)
             else {
-                val result = stirling (n - 1, m - 1) + n * stirling (n - 1, m)
-                memory.addOne((n, m), result)
+                val result = memoHelper (n - 1, m - 1, memo) + m * memoHelper (n - 1, m, memo)
+                memo.addOne((n, m), result)
                 result
             }
-    }
+        }
+    memoHelper(n, m, memory)
 }
-stirling(10, 2)
-memoized_stirling(10, 2)
+stirling(100, 5)
+memoized_stirling(100, 5)
 
 // ZAD2
 def make_memoize[A] (f: A => A): (A => A) = {
