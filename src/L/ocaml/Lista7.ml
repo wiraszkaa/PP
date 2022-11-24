@@ -45,14 +45,27 @@ end;;
 module BT : BT_type =
 struct
   type 'a bt = Empty | Node of 'a * 'a bt * 'a bt;;
-  let rec add (tt: 'a bt) v =
+  (* let rec add (tt: 'a bt) v =
     match tt with
-    | Empty -> tt
-    | Node (value, l, r) ->
-      match (l, r) with
-      | (Empty, _) -> Node (value, Node(v, Empty, Empty), r)
-      | (_, Empty) -> Node (value, l, Node(v, Empty, Empty))
-      | (l, r) -> Node (value, add l v, add r v);;
+    | Empty -> Node(v, Empty, Empty)
+    | Node (value, l, r) -> if v > value then Node (value, l, add r v) else Node (value, add l v, r);; *)
+  let add (tt: 'a bt) nv =
+    let rec findPlace q =
+      match q with
+      | [] -> failwith "Error"
+      | h::tl ->
+        match h with
+        | Node(v, Empty, _) -> v
+        | Node(v, _, Empty) -> v
+        | Node(_, l, r) -> findPlace (tl@[l; r])
+        | Empty -> findPlace tl in
+        let rec addHelper tt p nv =
+          match tt with
+          | Empty -> tt
+          | Node (v, l, r) when v <> p -> Node (v, addHelper l p nv, addHelper r p nv)
+          | Node (v, Empty, r) -> Node(v,Node(nv,Empty,Empty),r)
+          | Node (v, l, _) -> Node(v,l,Node(nv,Empty,Empty)) in
+          addHelper tt (findPlace [tt]) nv;;
   let list (tt: 'a bt) =
     let rec listHelper q acc =
       match q with
@@ -92,7 +105,7 @@ struct
       removeHelper tt v;;
 end;;
 
-let tt = BT.add (BT.add (BT.add (BT.Node(1, BT.Empty, BT.Empty)) 2) 3) 4;;
+let tt = BT.add (BT.add (BT.add (BT.Node(2, BT.Empty, BT.Empty)) 1) 3) 4;;
 BT.list tt;;
-let tt = BT.remove tt 1;;
+let tt = BT.remove tt 2;;
 BT.list tt;;
