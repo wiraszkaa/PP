@@ -1,48 +1,54 @@
 (* ZAD 1 *)
 
 module type Point_type = sig
-  type 'a point3D = {x: 'a; y: 'a; z: 'a};;
-  val distance : float point3D -> float point3D -> float;; 
+  type point3D = FPoint of float point | IPoint of int point and 'a point = {x: 'a; y: 'a; z: 'a};;
+  val distance : point3D -> point3D -> float;; 
 end;;
 
-module Point : Point_type = 
+module Point : Point_type =
 struct
-  type 'a point3D = {x: 'a; y: 'a; z: 'a};;
-  let distance (a: float point3D) (b: float point3D) =
-    sqrt ((a.x-.b.x)**2.+.(a.y-.b.y)**2.+.(a.z-.b.z)**2.);;
+  type point3D = FPoint of float point | IPoint of int point and 'a point = {x: 'a; y: 'a; z: 'a};;
+  let distance (a: point3D) (b: point3D) =
+    match (a, b) with
+    | (FPoint a, FPoint b) -> sqrt ((a.x-.b.x)**2.+.(a.y-.b.y)**2.+.(a.z-.b.z)**2.)
+    | (IPoint a, IPoint b) -> sqrt ((float_of_int (a.x-b.x))**2.+.(float_of_int (a.y-b.y))**2.+.(float_of_int (a.z-b.z))**2.)
+    | (a, b) -> failwith "Incompatible types"
 end;;
 
-let point1 = Point.{x = 1.; y = 1. ; z = 1.};;
-let point2 = Point.{x = 0.; y = 0.; z = 0.};;
+let point1 = Point.IPoint{x = 1; y = 1 ; z = 1};;
+let point2 = Point.IPoint{x = 0; y = 0; z = 0};;
 Point.distance point1 point2;;
 
 (* ZAD 2 *)
 
 module type Segment_type = sig
   open Point;;
-  type segment = {a: float point3D; b: float point3D};;
+  type segment = {a: point3D; b: point3D};;
   val length : segment -> float;;
 end;;
 
 module Segment : Segment_type =
 struct
   open Point;;
-  type segment = {a: float point3D; b: float point3D};;
+  type segment = {a: point3D; b: point3D};;
   let length (s: segment) = distance s.a s.b;;
 end;;
 
-Segment.length Segment.{a = point1; b = point2};;
+Segment.length (Segment.{a = point1; b = point2});;
 
 (* ZAD 3 *)
 
-(* module type BT_type = sig
+module type BT_type = sig
   type 'a bt = Empty | Node of 'a * 'a bt * 'a bt;;
   val add : 'a bt -> 'a -> 'a bt;;
   val remove : 'a bt -> 'a -> 'a bt;;
-  val list : 'a bt -> 'a list;;
-end;; *)
+  val preorder : 'a bt -> 'a list;;
+  val inorder : 'a bt -> 'a list;;
+  val postorder : 'a bt -> 'a list;;
+  val leafList : 'a bt -> 'a bt list;;
+end;;
 
-(* module BT : BT_type =
+module BT : BT_type =
 struct
   type 'a bt = Empty | Node of 'a * 'a bt * 'a bt;;
   (* let rec add (tt: 'a bt) v =
@@ -59,22 +65,13 @@ struct
         | Node(v, _, Empty) -> v
         | Node(_, l, r) -> findPlace (tl@[l; r])
         | Empty -> findPlace tl in
-        let rec addHelper tt p nv =
-          match tt with
-          | Empty -> tt
-          | Node (v, l, r) when v <> p -> Node (v, addHelper l p nv, addHelper r p nv)
-          | Node (v, Empty, r) -> Node(v,Node(nv,Empty,Empty),r)
-          | Node (v, l, _) -> Node(v,l,Node(nv,Empty,Empty)) in
-          addHelper tt (findPlace [tt]) nv;;
-  let list (tt: 'a bt) =
-    let rec listHelper q acc =
-      match q with
-      | [] -> List.rev acc
-      | h::tl->
-        match h with
-        | Empty -> listHelper tl acc 
-        | Node (v, l, r) -> listHelper (tl@[l; r]) (v::acc) in
-      listHelper [tt] [];;
+    let rec addHelper tt p =
+      match tt with
+      | Empty -> tt
+      | Node (v, l, r) when v <> p -> Node (v, addHelper l p, addHelper r p)
+      | Node (v, Empty, r) -> Node(v,Node(nv,Empty,Empty),r)
+      | Node (v, l, _) -> Node(v,l,Node(nv,Empty,Empty)) in
+      addHelper tt (findPlace [tt]);;
   let last (tt: 'a bt) =
     let rec lastHelper q acc =
       match q with
@@ -93,19 +90,45 @@ struct
     | Node (v, l, r) when v <> o -> Node (v, set l o n, set r o n)
     | Node (v, l, r) -> Node (n, l, r);;
   let remove (tt: 'a bt) v =
-    let rec removeHelper (n: 'a bt) v =
-    match n with
-    | Empty -> n
-    | Node (value, l, r) when value <> v -> Node (value, removeHelper l v, removeHelper r v)
-    | Node (value, l, r) ->
-      match (l, r) with
-      | (Empty, _) -> r
-      | (_, Empty) -> l
-      | (l, r) -> let lastVal = (last tt) in set (removeHelper tt lastVal) v lastVal in
-      removeHelper tt v;;
-end;; *)
+    let lastV = last tt in
+    let rec removeHelper (tt: 'a bt) =
+    match tt with
+    | Empty -> tt
+    | Node (value, l, r) -> if value = v then Node (lastV, removeHelper l, removeHelper r) else
+      if value = lastV then Empty else Node (value, removeHelper l, removeHelper r) in
+      removeHelper tt;;
+  let rec preorder (tt: 'a bt) =
+    match tt with
+    | Empty -> []
+    | Node (v, l, r) -> [v] @ preorder l @ preorder r;;
+  let rec inorder (tt: 'a bt) = 
+    match tt with
+    | Empty -> []
+    | Node (v, l, r) -> inorder l @ [v] @ inorder r;;
+  let rec postorder (tt: 'a bt) = 
+    match tt with
+    | Empty -> []
+    | Node (v, l, r) -> postorder l @ postorder r @ [v];;
+  let rec leafList (tt: 'a bt) =
+    match tt with
+    | Empty -> []
+    | Node (v, l, r) ->
+        match (l, r) with
+        | (Empty, Empty) -> [tt]
+        | (Empty, r) -> leafList r
+        | (l, Empty) -> leafList l
+        | (l, r) -> leafList l@leafList r;;
+end;;
 
-module type BT_type = sig
+let tt = BT.add (BT.add (BT.add (BT.add (BT.Node(1, Empty, Empty)) 2) 3) 4) 5;;
+BT.preorder tt;;
+BT.inorder tt;;
+BT.leafList tt;;
+BT.postorder tt;;
+let tt = BT.remove tt 2;;
+BT.postorder tt;;
+
+(* module type BT_type = sig
   type 'a bt = Empty | Node of 'a node and 'a node = { mutable value: 'a; mutable parent: 'a bt;  mutable left: 'a bt; mutable right: 'a bt };;
   val add : 'a bt -> 'a -> unit;;
   val remove : 'a bt -> 'a -> unit;;
@@ -221,4 +244,8 @@ BT.postorder tt;;
 BT.leafList tt;;
 BT.preorder tt;;
 BT.remove tt 2;;
-BT.preorder tt;;
+BT.preorder tt;; *)
+
+module Make_Point (Point : Point_type) = struct
+  Point.FPoint{x = 0.; y = 0.; z = 0.}
+end;;
