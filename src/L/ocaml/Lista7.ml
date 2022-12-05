@@ -12,7 +12,8 @@ struct
     match (a, b) with
     | (FPoint a, FPoint b) -> sqrt ((a.x-.b.x)**2.+.(a.y-.b.y)**2.+.(a.z-.b.z)**2.)
     | (IPoint a, IPoint b) -> sqrt ((float_of_int (a.x-b.x))**2.+.(float_of_int (a.y-b.y))**2.+.(float_of_int (a.z-b.z))**2.)
-    | (a, b) -> failwith "Incompatible types"
+    | (FPoint a, IPoint b) -> sqrt ((a.x-.(float_of_int b.x))**2.+.(a.y-.(float_of_int b.y))**2.+.(a.z-.(float_of_int b.z))**2.)
+    | (IPoint a, FPoint b) -> sqrt (((float_of_int a.x)-.b.x)**2.+.((float_of_int a.y)-.b.y)**2.+.((float_of_int a.z)-.b.z)**2.)
 end;;
 
 let point1 = Point.IPoint{x = 1; y = 1 ; z = 1};;
@@ -246,6 +247,20 @@ BT.preorder tt;;
 BT.remove tt 2;;
 BT.preorder tt;; *)
 
-module Make_Point (Point : Point_type) = struct
-  Point.FPoint{x = 0.; y = 0.; z = 0.}
+(* ZAD 4 *)
+
+module type Comparable = sig
+  type t
 end;;
+
+module Make_Point (Type : Comparable) = struct
+  type t = Type.t;;
+  let create (x: t) (y: t) (z: t) : t Point.point = Point.{x;y;z};;
+end;;
+
+module IntPoint = 
+Make_Point(struct
+  type t = int;;
+end);;
+
+let point = IntPoint.create 1 0 0;;
