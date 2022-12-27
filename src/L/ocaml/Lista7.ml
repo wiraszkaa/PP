@@ -1,23 +1,34 @@
 (* ZAD 1 *)
 
 module type Point_type = sig
-  type point3D = FPoint of float point | IPoint of int point and 'a point = {x: 'a; y: 'a; z: 'a};;
-  val distance : point3D -> point3D -> float;; 
+  type t = Int of int | Float of float
+  type point3D = {x: t; y: t; z: t}
+  val distance : point3D -> point3D -> float
+  val translate : point3D -> t * t * t -> point3D
 end;;
 
 module Point : Point_type =
 struct
-  type point3D = FPoint of float point | IPoint of int point and 'a point = {x: 'a; y: 'a; z: 'a};;
+  type t = Int of int | Float of float
+  type point3D = {x: t; y: t; z: t};;
+  let normalize p = 
+    match p with
+    | Float f -> f
+    | Int i -> float_of_int i;;
   let distance (a: point3D) (b: point3D) =
-    match (a, b) with
-    | (FPoint a, FPoint b) -> sqrt ((a.x-.b.x)**2.+.(a.y-.b.y)**2.+.(a.z-.b.z)**2.)
-    | (IPoint a, IPoint b) -> sqrt ((float_of_int (a.x-b.x))**2.+.(float_of_int (a.y-b.y))**2.+.(float_of_int (a.z-b.z))**2.)
-    | (FPoint a, IPoint b) -> sqrt ((a.x-.(float_of_int b.x))**2.+.(a.y-.(float_of_int b.y))**2.+.(a.z-.(float_of_int b.z))**2.)
-    | (IPoint a, FPoint b) -> sqrt (((float_of_int a.x)-.b.x)**2.+.((float_of_int a.y)-.b.y)**2.+.((float_of_int a.z)-.b.z)**2.)
+    sqrt ((normalize a.x-.normalize b.x)**2.+.(normalize a.y-.normalize b.y)**2.+.(normalize a.z-.normalize b.z)**2.);;
+  let tCoord t x = 
+    match (t, x) with
+    | (Float t, Int x) -> Float (t +. float_of_int x)
+    | (Int t, Float x) -> Float (float_of_int t +. x)
+    | (Float t, Float x) -> Float (t +. x)
+    | (Int t, Int x) -> Int (t + x);;
+  let translate p (x, y, z) =
+    {x=(tCoord p.x x);y=(tCoord p.y y);z=(tCoord p.z z)}
 end;;
 
-let point1 = Point.IPoint{x = 1; y = 1 ; z = 1};;
-let point2 = Point.IPoint{x = 0; y = 0; z = 0};;
+let point1 = Point.{x = Point.Int 1; y =Point.Int 1 ; z =Point.Int 1};;
+let point2 = Point.{x = Point.Int 0; y =Point.Int 0; z =Point.Int 0};;
 Point.distance point1 point2;;
 
 (* ZAD 2 *)
@@ -249,18 +260,81 @@ BT.preorder tt;; *)
 
 (* ZAD 4 *)
 
-module type Comparable = sig
-  type t
+module type Coordinates = sig
+  val x: Point.t
+  val y: Point.t
+  val z: Point.t
 end;;
 
-module Make_Point (Type : Comparable) = struct
-  type t = Type.t;;
-  let create (x: t) (y: t) (z: t) : t Point.point = Point.{x;y;z};;
+module type Point = sig
+  val point: Point.point3D
 end;;
 
-module IntPoint = 
-Make_Point(struct
-  type t = int;;
+module type Segment = sig
+  val segment: Segment.segment
+end;;
+
+module Make_Point (C: Coordinates) = struct
+  let point = Point.{x=C.x;y=C.y;z=C.z};;
+end;;
+
+module Point1 = 
+Make_Point(
+struct
+  let x = Point.Int 0;;
+  let y = Point.Int 0;;
+  let z = Point.Int 0;;
+end
+);;
+
+module Point2 = 
+Make_Point(
+struct
+  let x = Point.Int 1;;
+  let y = Point.Int 2;;
+  let z = Point.Int 3;;
+end
+);;
+
+module Make_Segment (P1: Point) (P2: Point) = struct
+  let segment = Segment.{a=P1.point;b=P2.point};;
+end;;
+
+module IntSegment =
+Make_Segment (Point1) (Point2);;
+
+IntSegment.segment;;
+
+module type Translation = sig
+  val x: Point.t
+  val y: Point.t
+  val z: Point.t
+end;;
+
+module Translate_Point (P: Point) (T: Translation) = struct
+  let point = Point.translate P.point (T.x, T.y, T.z);;
+end;;
+
+module TPoint = 
+Translate_Point (Point1) (struct
+  let x = Point.Int 1;;
+  let y = Point.Int 1;;
+  let z = Point.Int 1;;
 end);;
 
-let point = IntPoint.create 1 0 0;;
+Point1.point;;
+TPoint.point;;
+
+module Translate_Segment (S: Segment) (T: Translation) = struct
+  let segment = Segment.{a=(Point.translate S.segment.a (T.x, T.y, T.z));b=(Point.translate S.segment.b (T.x, T.y, T.z))};;
+end;;
+
+module TSegment =
+  Translate_Segment (IntSegment) (struct
+    let x = Point.Int 1;;
+    let y = Point.Int 1;;
+    let z = Point.Int 1;;
+  end);;
+
+IntSegment.segment;;
+TSegment.segment;;
