@@ -6,4 +6,8 @@ public abstract class Shape extends Primitive {
     public boolean getFilled() {
         return isFilled;
     }
+
+    public void setFilled(boolean isFilled) {
+        this.isFilled = isFilled;
+    }
 }

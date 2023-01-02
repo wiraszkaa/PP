@@ -1,7 +1,6 @@
 package Lista8;
 
 import org.opencv.core.Mat;
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -38,10 +37,10 @@ abstract class Item {
         }
         MyPoint furthestRight = getFurthest(false);
 
-        return createBoundingBox(furthestRight, position);
+        return createBoundingBox(position, furthestRight);
     }
 
-    static List<MyPoint> createBoundingBox(MyPoint furthestRight, MyPoint position) {
+    static List<MyPoint> createBoundingBox(MyPoint position, MyPoint furthestRight) {
         List<MyPoint> boundingBox = new LinkedList<>();
         boundingBox.add(position.copy());
         boundingBox.add(furthestRight);

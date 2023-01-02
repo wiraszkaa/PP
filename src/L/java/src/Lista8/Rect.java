@@ -1,6 +1,5 @@
 package Lista8;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -22,6 +21,6 @@ class Rect extends Shape {
     @Override
     public void draw(Mat src) {
         Scalar color = new Scalar(64, 64, 64);
-        Imgproc.rectangle (src, anchorPoints.get(0).toPoint(), anchorPoints.get(1).toPoint(), color);
+        Imgproc.rectangle (src, anchorPoints.get(0).toPoint(), anchorPoints.get(1).toPoint(), color, getFilled() ? -1 : 1);
     }
 }

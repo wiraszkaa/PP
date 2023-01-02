@@ -1,9 +1,11 @@
 package Lista8;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+import java.util.LinkedList;
+import java.util.List;
 
 class Triangle extends Shape {
     public Triangle(MyPoint p1, MyPoint p2, MyPoint p3) {
@@ -27,8 +29,12 @@ class Triangle extends Shape {
     @Override
     public void draw(Mat src) {
         Scalar color = new Scalar(64, 64, 64);
-        Imgproc.line(src, anchorPoints.get(0).toPoint(), anchorPoints.get(1).toPoint(), color);
-        Imgproc.line(src, anchorPoints.get(0).toPoint(), anchorPoints.get(2).toPoint(), color);
-        Imgproc.line(src, anchorPoints.get(2).toPoint(), anchorPoints.get(1).toPoint(), color);
+        List<MatOfPoint> points = new LinkedList<>();
+        points.add(new MatOfPoint( getP1().toPoint(), getP2().toPoint(), getP3().toPoint()));
+        if (getFilled()) {
+            Imgproc.fillPoly(src, points, color);
+        } else {
+            Imgproc.polylines(src, points, true, color);
+        }
     }
 }

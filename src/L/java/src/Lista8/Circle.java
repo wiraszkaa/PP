@@ -1,6 +1,5 @@
 package Lista8;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -33,12 +32,12 @@ class Circle extends Shape {
         MyPoint position = getPosition();
         MyPoint furthestRight = new MyPoint(anchorPoints.get(0).getX() + radius, anchorPoints.get(0).getY() - radius);
 
-        return createBoundingBox(furthestRight, position);
+        return createBoundingBox(position, furthestRight);
     }
 
     @Override
     public void draw(Mat src) {
         Scalar color = new Scalar(64, 64, 64);
-        Imgproc.circle(src, anchorPoints.get(0).toPoint(), radius, color);
+        Imgproc.circle(src, anchorPoints.get(0).toPoint(), radius, color, getFilled() ? -1 : 1);
     }
 }

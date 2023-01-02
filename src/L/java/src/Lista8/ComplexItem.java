@@ -1,8 +1,6 @@
 package Lista8;
 
 import org.opencv.core.Mat;
-
-import java.util.LinkedList;
 import java.util.List;
 
 class ComplexItem extends Item {
@@ -41,24 +39,17 @@ class ComplexItem extends Item {
 
     @Override
     public List<MyPoint> getBoundingBox() {
-        int xRight = children.get(0).getPosition().getX();
-        int yRight = children.get(0).getPosition().getY();
+        int x = children.get(0).getPosition().getX();
+        int y = children.get(0).getPosition().getY();
 
         for (Item i : children) {
             List<MyPoint> boundingBox = i.getBoundingBox();
-            MyPoint currRight = boundingBox.get(1);
-            xRight = Math.max(xRight, currRight.getX());
-            yRight = Math.min(yRight, currRight.getY());
+            MyPoint curr = boundingBox.get(1);
+            x = Math.max(x, curr.getX());
+            y = Math.min(y, curr.getY());
         }
-        
-        MyPoint position = getPosition();
-        List<MyPoint> boundingBox = new LinkedList<>();
-        boundingBox.add(position.copy());
-        boundingBox.add(new MyPoint(xRight, yRight));
-        boundingBox.add(new MyPoint(position.getX(), yRight));
-        boundingBox.add(new MyPoint(xRight, position.getY()));
 
-        return boundingBox;
+        return createBoundingBox(getPosition(), new MyPoint(x, y));
     }
 
     @Override
