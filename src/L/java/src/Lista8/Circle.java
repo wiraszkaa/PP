@@ -1,13 +1,16 @@
 package Lista8;
 
-import java.awt.*;
-import java.util.LinkedList;
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
 import java.util.List;
 
 class Circle extends Shape {
     private final int radius;
 
-    public Circle(Point center, int radius) {
+    public Circle(MyPoint center, int radius) {
         anchorPoints.add(center);
         this.radius = radius;
     }
@@ -17,31 +20,25 @@ class Circle extends Shape {
     }
 
     @Override
-    public Point getPosition() {
+    public MyPoint getPosition() {
         if (position == null) {
-            position = new Point(anchorPoints.get(0).getX() - radius, anchorPoints.get(0).getY() + radius);
+            position = new MyPoint(anchorPoints.get(0).getX() - radius, anchorPoints.get(0).getY() + radius);
         }
 
         return position;
     }
 
     @Override
-    public List<Point> getBoundingBox() {
-        Point position = getPosition();
-        Point furthestRight = new Point(anchorPoints.get(0).getX() + radius, anchorPoints.get(0).getY() - radius);
-        
-        List<Point> boundingBox = new LinkedList<>();
-        boundingBox.add(position.copy());
-        boundingBox.add(furthestRight);
-        boundingBox.add(new Point(position.getX(), furthestRight.getY()));
-        boundingBox.add(new Point(furthestRight.getX(), position.getY()));
+    public List<MyPoint> getBoundingBox() {
+        MyPoint position = getPosition();
+        MyPoint furthestRight = new MyPoint(anchorPoints.get(0).getX() + radius, anchorPoints.get(0).getY() - radius);
 
-        return boundingBox;
+        return createBoundingBox(furthestRight, position);
     }
 
     @Override
-    public void draw() {
-        // TODO Auto-generated method stub
+    public void draw(Mat src) {
+        Scalar color = new Scalar(64, 64, 64);
+        Imgproc.circle(src, anchorPoints.get(0).toPoint(), radius, color);
     }
-  
 }

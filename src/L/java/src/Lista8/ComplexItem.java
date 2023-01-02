@@ -1,5 +1,7 @@
 package Lista8;
 
+import org.opencv.core.Mat;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,16 +17,16 @@ class ComplexItem extends Item {
     }
 
     @Override
-    public void translate(Point p) {
+    public void translate(MyPoint p) {
         for (Item i : children) {
             i.translate(p);
         }
     }
 
     @Override
-    public Point getPosition() {
+    public MyPoint getPosition() {
         if (position == null) {
-            Point curr = children.get(0).getPosition();
+            MyPoint curr = children.get(0).getPosition();
             int x = curr.getX();
             int y = curr.getY();
             for (Item i : children) {
@@ -32,37 +34,37 @@ class ComplexItem extends Item {
                 x = Math.min(x, curr.getX());
                 y = Math.max(y, curr.getY());
             }
-            position = new Point(x, y);
+            position = new MyPoint(x, y);
         }
         return position;
     }
 
     @Override
-    public List<Point> getBoundingBox() {
+    public List<MyPoint> getBoundingBox() {
         int xRight = children.get(0).getPosition().getX();
         int yRight = children.get(0).getPosition().getY();
 
         for (Item i : children) {
-            List<Point> boundingBox = i.getBoundingBox();
-            Point currRight = boundingBox.get(1);
+            List<MyPoint> boundingBox = i.getBoundingBox();
+            MyPoint currRight = boundingBox.get(1);
             xRight = Math.max(xRight, currRight.getX());
             yRight = Math.min(yRight, currRight.getY());
         }
         
-        Point position = getPosition();
-        List<Point> boundingBox = new LinkedList<>();
+        MyPoint position = getPosition();
+        List<MyPoint> boundingBox = new LinkedList<>();
         boundingBox.add(position.copy());
-        boundingBox.add(new Point(xRight, yRight));
-        boundingBox.add(new Point(position.getX(), yRight));
-        boundingBox.add(new Point(xRight, position.getY()));
+        boundingBox.add(new MyPoint(xRight, yRight));
+        boundingBox.add(new MyPoint(position.getX(), yRight));
+        boundingBox.add(new MyPoint(xRight, position.getY()));
 
         return boundingBox;
     }
 
     @Override
-    public void draw() {
-        // TODO Auto-generated method stub
-
+    public void draw(Mat src) {
+        for (Item child: children) {
+            child.draw(src);
+        }
     }
-
 }

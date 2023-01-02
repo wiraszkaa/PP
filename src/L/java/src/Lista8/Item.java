@@ -1,26 +1,28 @@
 package Lista8;
 
+import org.opencv.core.Mat;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 abstract class Item {
-    List<Point> anchorPoints;
-    Point position;
+    List<MyPoint> anchorPoints;
+    MyPoint position;
 
     public Item() {
         anchorPoints = new ArrayList<>();
     }
 
-    public Point getPosition() {
+    public MyPoint getPosition() {
         if (position == null) {
             position = getFurthest(true);
         }
         return position;
     }
 
-    public void translate(Point p) {
-        for (Point i: anchorPoints) {
+    public void translate(MyPoint p) {
+        for (MyPoint i: anchorPoints) {
             i.move(p.getX(), p.getY());
         }
         if (position != null) {
@@ -28,27 +30,31 @@ abstract class Item {
         }
     }
 
-    public abstract void draw();
+    public abstract void draw(Mat src);
 
-    public List<Point> getBoundingBox() {
+    public List<MyPoint> getBoundingBox() {
         if (position == null) {
             position = getFurthest(true);
         }
-        Point furthestRight = getFurthest(false);
+        MyPoint furthestRight = getFurthest(false);
 
-        List<Point> boundingBox = new LinkedList<>();
+        return createBoundingBox(furthestRight, position);
+    }
+
+    static List<MyPoint> createBoundingBox(MyPoint furthestRight, MyPoint position) {
+        List<MyPoint> boundingBox = new LinkedList<>();
         boundingBox.add(position.copy());
         boundingBox.add(furthestRight);
-        boundingBox.add(new Point(position.getX(), furthestRight.getY()));
-        boundingBox.add(new Point(furthestRight.getX(), position.getY()));
+        boundingBox.add(new MyPoint(position.getX(), furthestRight.getY()));
+        boundingBox.add(new MyPoint(furthestRight.getX(), position.getY()));
 
         return boundingBox;
     }
 
-    private Point getFurthest(boolean isLeft) {
+    private MyPoint getFurthest(boolean isLeft) {
         int x = anchorPoints.get(0).getX();
         int y = anchorPoints.get(0).getY();
-        for (Point p : anchorPoints) {
+        for (MyPoint p : anchorPoints) {
             if (isLeft) {
                 if (p.getX() < x) {
                     x = p.getX();
@@ -65,6 +71,6 @@ abstract class Item {
                 }
             }
         }
-        return new Point(x, y);
+        return new MyPoint(x, y);
     }
 }

@@ -1,10 +1,12 @@
 package Lista8;
 
-class Point {
+import org.opencv.core.Point;
+
+class MyPoint {
     private int x;
     private int y;
 
-    public Point(int x, int y) {
+    public MyPoint(int x, int y) {
         this.x = x;
         this.y = y;
     }
@@ -22,11 +24,15 @@ class Point {
         this.y += y;
     }
 
-    public Point copy() {
+    public Point toPoint() {
         return new Point(x, y);
     }
 
-    public double getDistance(Point p) {
+    public MyPoint copy() {
+        return new MyPoint(x, y);
+    }
+
+    public double getDistance(MyPoint p) {
         return Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
     }
 
