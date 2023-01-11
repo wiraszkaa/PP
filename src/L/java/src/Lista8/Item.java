@@ -18,7 +18,7 @@ abstract class Item {
         if (position == null) {
             position = getFurthest(true);
         }
-        return position;
+        return position.copy();
     }
 
     public void translate(MyPoint p) {
@@ -34,12 +34,10 @@ abstract class Item {
 
     public List<MyPoint> getBoundingBox() {
         if (boundingBox == null) {
-            if (position == null) {
-                position = getFurthest(true);
-            }
+            MyPoint position = getPosition();
             MyPoint furthestRight = getFurthest(false);
 
-            boundingBox = createBoundingBox(position.copy(), furthestRight);
+            boundingBox = createBoundingBox(position, furthestRight);
         }
 
         return boundingBox;
