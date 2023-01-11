@@ -24,7 +24,7 @@ class Circle extends Shape {
             position = new MyPoint(anchorPoints.get(0).getX() - radius, anchorPoints.get(0).getY() + radius);
         }
 
-        return position;
+        return position.copy();
     }
 
     @Override

@@ -4,7 +4,7 @@ import org.opencv.core.Mat;
 import java.util.List;
 
 class ComplexItem extends Item {
-    private List<Item> children;
+    private final List<Item> children;
 
     public ComplexItem(List<Item> children) {
         this.children = children;
@@ -34,7 +34,7 @@ class ComplexItem extends Item {
             }
             position = new MyPoint(x, y);
         }
-        return position;
+        return position.copy();
     }
 
     @Override
@@ -49,7 +49,8 @@ class ComplexItem extends Item {
             y = Math.min(y, curr.getY());
         }
 
-        return createBoundingBox(getPosition(), new MyPoint(x, y));
+        boundingBox = createBoundingBox(getPosition(), new MyPoint(x, y));
+        return boundingBox;
     }
 
     @Override
