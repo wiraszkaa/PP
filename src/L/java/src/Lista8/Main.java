@@ -27,14 +27,16 @@ class Main {
         scene.add(snowman);
 
         Shape star = new Star(new MyPoint(400, 400), 100);
-        star.setFilled(true);
+//        star.setFilled(true);
         scene.add(star);
-
-        List<MyPoint> bb = snowman.getBoundingBox();
-        System.out.println(bb);
-        Item boundingBox = new Rect(bb.get(0), bb.get(1));
-        scene.add(boundingBox);
+        drawBoundingBox(scene, star);
 
         scene.draw();
+    }
+
+    private static void drawBoundingBox(Scene scene, Item item) {
+        List<MyPoint> bb = item.getBoundingBox();
+        Item boundingBox = new Rect(bb.get(0), bb.get(1));
+        scene.add(boundingBox);
     }
 }

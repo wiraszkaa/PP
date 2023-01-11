@@ -8,6 +8,7 @@ import java.util.LinkedList;
 abstract class Item {
     List<MyPoint> anchorPoints;
     MyPoint position;
+    List<MyPoint> boundingBox;
 
     public Item() {
         anchorPoints = new ArrayList<>();
@@ -32,17 +33,21 @@ abstract class Item {
     public abstract void draw(Mat src);
 
     public List<MyPoint> getBoundingBox() {
-        if (position == null) {
-            position = getFurthest(true);
-        }
-        MyPoint furthestRight = getFurthest(false);
+        if (boundingBox == null) {
+            if (position == null) {
+                position = getFurthest(true);
+            }
+            MyPoint furthestRight = getFurthest(false);
 
-        return createBoundingBox(position, furthestRight);
+            boundingBox = createBoundingBox(position.copy(), furthestRight);
+        }
+
+        return boundingBox;
     }
 
     static List<MyPoint> createBoundingBox(MyPoint position, MyPoint furthestRight) {
         List<MyPoint> boundingBox = new LinkedList<>();
-        boundingBox.add(position.copy());
+        boundingBox.add(position);
         boundingBox.add(furthestRight);
         boundingBox.add(new MyPoint(position.getX(), furthestRight.getY()));
         boundingBox.add(new MyPoint(furthestRight.getX(), position.getY()));
@@ -55,19 +60,11 @@ abstract class Item {
         int y = anchorPoints.get(0).getY();
         for (MyPoint p : anchorPoints) {
             if (isLeft) {
-                if (p.getX() < x) {
-                    x = p.getX();
-                }
-                if (p.getY() > y) {
-                    y = p.getY();
-                }
+                x = Math.min(x, p.getX());
+                y = Math.max(y, p.getY());
             } else {
-                if (p.getX() > x) {
-                    x = p.getX();
-                }
-                if (p.getY() < y) {
-                    y = p.getY();
-                }
+                x = Math.max(x, p.getX());
+                y = Math.min(y, p.getY());
             }
         }
         return new MyPoint(x, y);

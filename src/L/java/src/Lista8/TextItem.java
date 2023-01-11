@@ -11,8 +11,7 @@ class TextItem extends Item {
     private final String text;
     private final double scale;
     private final int face = Imgproc.FONT_HERSHEY_SIMPLEX;
-    private final int thickness = 1;
-    
+
     public TextItem(MyPoint position, String text) {
         anchorPoints.add(position);
         this.position = position;
@@ -33,8 +32,12 @@ class TextItem extends Item {
 
     @Override
     public List<MyPoint> getBoundingBox() {
-        Size size = Imgproc.getTextSize(text, face, scale, thickness, null);
-        return createBoundingBox(position, new MyPoint((int) (position.getX() + size.width) + 1, (int) (position.getY() - size.height) - 1));
+        if (boundingBox == null) {
+            Size size = Imgproc.getTextSize(text, face, scale, 1, null);
+            boundingBox = createBoundingBox(position.copy(), new MyPoint((int) (position.getX() + size.width) + 1, (int) (position.getY() - size.height) - 1));
+        }
+
+        return boundingBox;
     }
 
     @Override

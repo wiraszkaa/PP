@@ -29,10 +29,14 @@ class Circle extends Shape {
 
     @Override
     public List<MyPoint> getBoundingBox() {
-        MyPoint position = getPosition();
-        MyPoint furthestRight = new MyPoint(anchorPoints.get(0).getX() + radius, anchorPoints.get(0).getY() - radius);
+        if (boundingBox == null) {
+            MyPoint position = getPosition();
+            MyPoint furthestRight = new MyPoint(anchorPoints.get(0).getX() + radius, anchorPoints.get(0).getY() - radius);
 
-        return createBoundingBox(position, furthestRight);
+            boundingBox = createBoundingBox(position.copy(), furthestRight);
+        }
+
+        return boundingBox;
     }
 
     @Override
