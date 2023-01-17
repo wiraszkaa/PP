@@ -35,6 +35,7 @@ public class Star extends Shape {
 
     @Override
     public void draw(Mat src) {
+        super.draw(src);
         Scalar color = new Scalar(64, 64, 64);
         List<MatOfPoint> points = new LinkedList<>();
         points.add(new MatOfPoint(get(0), get(1), get(2), get(3), get(4), get(5), get(6), get(7), get(8), get(9)));
@@ -44,5 +45,10 @@ public class Star extends Shape {
         } else {
             Imgproc.polylines(src, points, true, color);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Star " + super.toString();
     }
 }

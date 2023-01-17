@@ -20,7 +20,13 @@ class Rect extends Shape {
 
     @Override
     public void draw(Mat src) {
+        super.draw(src);
         Scalar color = new Scalar(64, 64, 64);
         Imgproc.rectangle (src, anchorPoints.get(0).toPoint(), anchorPoints.get(1).toPoint(), color, getFilled() ? -1 : 1);
+    }
+
+    @Override
+    public String toString() {
+        return "Rectangle " + super.toString();
     }
 }

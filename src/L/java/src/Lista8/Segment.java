@@ -24,8 +24,14 @@ class Segment extends Primitive {
 
     @Override
     public void draw(Mat src) {
+        super.draw(src);
         Scalar color = new Scalar(64, 64, 64);
         Imgproc.line(src, anchorPoints.get(0).toPoint(), anchorPoints.get(1).toPoint(), color);
+    }
+
+    @Override
+    public String toString() {
+        return "Segment " + super.toString();
     }
 }
 

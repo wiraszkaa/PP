@@ -41,7 +41,13 @@ class Circle extends Shape {
 
     @Override
     public void draw(Mat src) {
+        super.draw(src);
         Scalar color = new Scalar(64, 64, 64);
         Imgproc.circle(src, anchorPoints.get(0).toPoint(), radius, color, getFilled() ? -1 : 1);
+    }
+
+    @Override
+    public String toString() {
+        return "Circle " + super.toString();
     }
 }

@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 class Triangle extends Shape {
+    private static Triangle INSTANCE;
+
     public Triangle(MyPoint p1, MyPoint p2, MyPoint p3) {
         anchorPoints.add(p1);
         anchorPoints.add(p2);
@@ -28,6 +30,7 @@ class Triangle extends Shape {
 
     @Override
     public void draw(Mat src) {
+        super.draw(src);
         Scalar color = new Scalar(64, 64, 64);
         List<MatOfPoint> points = new LinkedList<>();
         points.add(new MatOfPoint( getP1().toPoint(), getP2().toPoint(), getP3().toPoint()));
@@ -36,5 +39,10 @@ class Triangle extends Shape {
         } else {
             Imgproc.polylines(src, points, true, color);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Triangle " + super.toString();
     }
 }

@@ -55,8 +55,14 @@ class ComplexItem extends Item {
 
     @Override
     public void draw(Mat src) {
+        super.draw(src);
         for (Item child: children) {
             child.draw(src);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ComplexItem " + super.toString();
     }
 }

@@ -1,6 +1,9 @@
 package Lista8;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -9,6 +12,7 @@ abstract class Item {
     List<MyPoint> anchorPoints;
     MyPoint position;
     List<MyPoint> boundingBox;
+    private boolean isBoundingBox;
 
     public Item() {
         anchorPoints = new ArrayList<>();
@@ -30,7 +34,13 @@ abstract class Item {
         }
     }
 
-    public abstract void draw(Mat src);
+    public void draw(Mat src) {
+        if (isBoundingBox) {
+            List<MyPoint> bb = getBoundingBox();
+            Scalar color = new Scalar(64, 64, 64);
+            Imgproc.rectangle (src, bb.get(0).toPoint(), bb.get(1).toPoint(), color);
+        }
+    }
 
     public List<MyPoint> getBoundingBox() {
         if (boundingBox == null) {
@@ -66,5 +76,14 @@ abstract class Item {
             }
         }
         return new MyPoint(x, y);
+    }
+
+    public void toggleBoundingBox() {
+        isBoundingBox = !isBoundingBox;
+    }
+
+    @Override
+    public String toString() {
+        return getPosition().toString();
     }
 }

@@ -1,6 +1,7 @@
 package Lista8;
 
 import org.opencv.core.*;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.List;
@@ -29,14 +30,8 @@ class Main {
         Shape star = new Star(new MyPoint(400, 400), 100);
 //        star.setFilled(true);
         scene.add(star);
-        drawBoundingBox(scene, star);
 
-        scene.draw();
-    }
-
-    private static void drawBoundingBox(Scene scene, Item item) {
-        List<MyPoint> bb = item.getBoundingBox();
-        Item boundingBox = new Rect(bb.get(0), bb.get(1));
-        scene.add(boundingBox);
+        SceneDecorator sceneDecorator = new SceneDecorator(scene);
+        sceneDecorator.draw();
     }
 }
