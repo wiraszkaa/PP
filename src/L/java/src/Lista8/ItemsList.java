@@ -2,13 +2,8 @@ package Lista8;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.BatchUpdateException;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Flow;
 
 public class ItemsList {
     private final JFrame frame;
@@ -25,7 +20,6 @@ public class ItemsList {
         button.addActionListener(onClick);
         frame.add(button);
 
-//        frame.setSize(400,500);
         frame.setLayout(new FlowLayout());
     }
 
