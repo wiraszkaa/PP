@@ -2,10 +2,14 @@ package Lista10.Zad3;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.javadsl.Behaviors;
+
+import java.time.Duration;
+import java.time.Instant;
 
 public class Storager extends AbstractBehavior<Storager.Provider> {
     private final Storage storage;
@@ -13,17 +17,18 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
     private final ActorRef<Provider> fermenter;
     private final ActorRef<Provider> filterer;
     private final ActorRef<Provider> bottler;
+    private final long speed;
+
+    private Instant start;
 
     private Storager(ActorContext<Provider> context, Storage storage, long speed) {
         super(context);
         this.storage = storage;
+        this.speed = speed;
         embosser = context.spawn(Embosser.create(getContext().getSelf(), speed), "embosser");
-        fermenter = context.spawn(Fermenter.create(getContext().getSelf(), speed), "fermenter");
-        filterer = context.spawn(Filterer.create(getContext().getSelf(), speed), "filterer");
-        bottler = context.spawn(Bottler.create(getContext().getSelf(), speed), "bottler");
-        getContext().watch(embosser);
-        getContext().watch(fermenter);
-        getContext().watch(filterer);
+        fermenter = context.spawn(Fermenter.create(getContext().getSelf(), embosser, speed), "fermenter");
+        filterer = context.spawn(Filterer.create(getContext().getSelf(), fermenter, speed), "filterer");
+        bottler = context.spawn(Bottler.create(getContext().getSelf(), filterer, speed), "bottler");
         getContext().watch(bottler);
     }
 
@@ -42,6 +47,8 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
                 .onMessage(GetUnfilteredWine.class, this::getUnfilteredWine)
                 .onMessage(GetFilteredWine.class, this::getFilteredWine)
                 .onMessage(GetWineBottles.class, this::getWineBottles)
+                .onMessage(BottlingSupplies.class, this::sendBottlingInfo)
+                .onSignal(Terminated.class, this::stopProduction)
                 .build();
     }
 
@@ -113,15 +120,36 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
         }
     }
 
+    public static final class BottlingSupplies implements Provider {
+        public final double neededBottles;
+
+        public BottlingSupplies(double neededBottles) {
+            this.neededBottles = neededBottles;
+        }
+    }
+
     public static class StartProduction implements Provider {}
+
+    private Behavior<Provider> sendBottlingInfo(BottlingSupplies b) {
+        bottler.tell(new Bottler.Supplies(storage.bottles < b.neededBottles));
+        return this;
+    }
 
     private Behavior<Provider> startProduction(StartProduction p) {
         System.out.println("STARTING PRODUCTION");
+        start = Instant.now();
 
         embosser.tell(new Embosser.ProvideGrapes(storage.grapes));
         storage.grapes = 0;
 
         return this;
+    }
+
+    private Behavior<Provider> stopProduction(Terminated t) {
+        System.out.println("FINISHING PRODUCTION");
+        System.out.printf("Created %d bottles of wine\n", storage.wineBottle);
+        System.out.printf("Estimated time is %.2f days", (Duration.between(start, Instant.now()).toMillis() * speed) / (60000 * 60 * 24.0));
+        return Behaviors.stopped();
     }
 
     private Behavior<Provider> getGrapes(GetGrapes g) {
@@ -147,7 +175,7 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
 
     private Behavior<Provider> getJuice(GetJuice g) {
         storage.juice += g.juice;
-        System.out.printf("Created %.1f juice\n", storage.juice);
+        System.out.printf("%.1f juice in storage\n", storage.juice);
 
         embosser.tell(new Embosser.ProvideGrapes(storage.grapes));
         storage.grapes = 0;
@@ -162,7 +190,7 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
 
     private Behavior<Provider> getUnfilteredWine(GetUnfilteredWine g) {
         storage.unfilteredWine += g.unfilteredWine;
-        System.out.printf("Created %.1f unfilteredWine\n", storage.unfilteredWine);
+        System.out.printf("%.1f unfilteredWine in storage\n", storage.unfilteredWine);
 
         fermenter.tell(new Fermenter.ProvideSupplies(storage.juice, storage.sugar, storage.water));
         storage.juice = 0;
@@ -177,7 +205,7 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
 
     private Behavior<Provider> getFilteredWine(GetFilteredWine g) {
         storage.filteredWine += g.filteredWine;
-        System.out.printf("Created %.1f filteredWine\n", storage.filteredWine);
+        System.out.printf("%.1f filteredWine in storage\n", storage.filteredWine);
 
         filterer.tell(new Filterer.ProvideUnfilteredWine(storage.unfilteredWine));
         storage.unfilteredWine = 0;
@@ -191,11 +219,10 @@ public class Storager extends AbstractBehavior<Storager.Provider> {
 
     private Behavior<Provider> getWineBottles(GetWineBottles g) {
         storage.wineBottle += g.wineBottles;
-        System.out.printf("Created %d WineBottles\n", storage.wineBottle);
+        System.out.printf("%d WineBottles in storage\n", storage.wineBottle);
 
-        if (storage.bottles > 0) {
-            bottler.tell(new Bottler.ProvideBottlingSupplies(storage.filteredWine, storage.bottles));
-        }
+        bottler.tell(new Bottler.ProvideBottlingSupplies(storage.filteredWine, storage.bottles));
+
         storage.filteredWine = 0;
         storage.bottles = 0;
 

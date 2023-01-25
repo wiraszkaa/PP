@@ -1,7 +1,9 @@
 package Lista10.Zad3;
 
+import akka.actor.Actor;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -12,6 +14,7 @@ import java.util.Random;
 
 public class Fermenter extends AbstractBehavior<Storager.Provider> {
     private final ActorRef<Storager.Provider> storager;
+    private final ActorRef<Storager.Provider> embosser;
     private final long speed;
     private final int slots;
     private int freeSlots;
@@ -22,22 +25,26 @@ public class Fermenter extends AbstractBehavior<Storager.Provider> {
     private final double createdUnfilteredWine;
     private final double failureChance;
 
-    private Fermenter(ActorContext<Storager.Provider> context, ActorRef<Storager.Provider> storager, long speed) {
+    private boolean embosserTerminated;
+
+    private Fermenter(ActorContext<Storager.Provider> context, ActorRef<Storager.Provider> storager, ActorRef<Storager.Provider> embosser, long speed) {
         super(context);
         this.storager = storager;
+        this.embosser = embosser;
+        getContext().watch(embosser);
         this.speed = speed;
         slots = 10;
         freeSlots = slots;
         neededJuice = 15;
         neededWater = 8;
         neededSugar = 2;
-        neededTime = 1000;
+        neededTime = 20160 * 60 * 1000;
         createdUnfilteredWine = 25;
         failureChance = 0.05;
     }
 
-    public static Behavior<Storager.Provider> create(ActorRef<Storager.Provider> storager, long speed) {
-        return Behaviors.setup(context -> new Fermenter(context, storager, speed));
+    public static Behavior<Storager.Provider> create(ActorRef<Storager.Provider> storager, ActorRef<Storager.Provider> embosser, long speed) {
+        return Behaviors.setup(context -> new Fermenter(context, storager, embosser, speed));
     }
 
     @Override
@@ -45,7 +52,13 @@ public class Fermenter extends AbstractBehavior<Storager.Provider> {
         return newReceiveBuilder()
                 .onMessage(ProvideSupplies.class, this::ferment)
                 .onMessage(FermentingFinished.class, this::provideUnfilteredWine)
+                .onSignal(Terminated.class, this::terminate)
                 .build();
+    }
+
+    private Behavior<Storager.Provider> terminate(Terminated t) {
+        embosserTerminated = true;
+        return this;
     }
 
     public static final class ProvideSupplies implements Storager.Provider {
@@ -89,6 +102,10 @@ public class Fermenter extends AbstractBehavior<Storager.Provider> {
         } else {
             storager.tell(new Storager.GetUnfilteredWine(createdUnfilteredWine));
             System.out.println("Fermentation Success");
+        }
+        if (freeSlots == slots && embosserTerminated) {
+            System.out.println("Fermenting stopped");
+            return Behaviors.stopped();
         }
         return this;
     }

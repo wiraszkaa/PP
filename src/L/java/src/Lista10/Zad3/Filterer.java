@@ -2,6 +2,7 @@ package Lista10.Zad3;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -12,6 +13,7 @@ import java.util.Random;
 
 public class Filterer extends AbstractBehavior<Storager.Provider> {
     private final ActorRef<Storager.Provider> storager;
+    private final ActorRef<Storager.Provider> fermenter;
     private final long speed;
     private final int slots;
     private int freeSlots;
@@ -19,21 +21,24 @@ public class Filterer extends AbstractBehavior<Storager.Provider> {
     private final long neededTime;
     private final double createdfilteredWine;
     private final double failureChance;
+    private boolean fermenterTerminated;
 
-    private Filterer(ActorContext<Storager.Provider> context, ActorRef<Storager.Provider> storager, long speed) {
+    private Filterer(ActorContext<Storager.Provider> context, ActorRef<Storager.Provider> storager, ActorRef<Storager.Provider> fermenter, long speed) {
         super(context);
         this.storager = storager;
+        this.fermenter = fermenter;
+        getContext().watch(fermenter);
         this.speed = speed;
         slots = 10;
         freeSlots = slots;
         neededUnfilteredWine = 25;
-        neededTime = 1000;
+        neededTime = 12 * 60 * 60 * 1000;
         createdfilteredWine = 20;
         failureChance = 0;
     }
 
-    public static Behavior<Storager.Provider> create(ActorRef<Storager.Provider> storager, long speed) {
-        return Behaviors.setup(context -> new Filterer(context, storager, speed));
+    public static Behavior<Storager.Provider> create(ActorRef<Storager.Provider> storager, ActorRef<Storager.Provider> fermenter, long speed) {
+        return Behaviors.setup(context -> new Filterer(context, storager, fermenter, speed));
     }
 
     @Override
@@ -41,7 +46,13 @@ public class Filterer extends AbstractBehavior<Storager.Provider> {
         return newReceiveBuilder()
                 .onMessage(ProvideUnfilteredWine.class, this::filter)
                 .onMessage(FilteringFinished.class, this::provideFilteredWine)
+                .onSignal(Terminated.class, this::terminate)
                 .build();
+    }
+
+    private Behavior<Storager.Provider> terminate(Terminated t) {
+        fermenterTerminated = true;
+        return this;
     }
 
     public static final class ProvideUnfilteredWine implements Storager.Provider {
@@ -79,6 +90,11 @@ public class Filterer extends AbstractBehavior<Storager.Provider> {
         } else {
             storager.tell(new Storager.GetFilteredWine(createdfilteredWine));
             System.out.println("Filtering Success");
+        }
+
+        if (slots == freeSlots && fermenterTerminated) {
+            System.out.println("Filtering stopped");
+            return Behaviors.stopped();
         }
         return this;
     }

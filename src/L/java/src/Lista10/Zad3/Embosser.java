@@ -19,6 +19,7 @@ public class Embosser extends AbstractBehavior<Storager.Provider> {
     private final long neededTime;
     private final double createdJuice;
     private final double failureChance;
+    private boolean noGrapes;
 
     private Embosser(ActorContext<Storager.Provider> context, ActorRef<Storager.Provider> storager, long speed) {
         super(context);
@@ -27,7 +28,7 @@ public class Embosser extends AbstractBehavior<Storager.Provider> {
         slots = 1;
         freeSlots = slots;
         neededGrapes = 15;
-        neededTime = 1000;
+        neededTime = 720 * 60 * 1000;
         createdJuice = 10;
         failureChance = 0;
     }
@@ -65,6 +66,7 @@ public class Embosser extends AbstractBehavior<Storager.Provider> {
         if (grapes >= neededGrapes) {
             storager.tell(new Storager.GetGrapes(grapes));
         } else {
+            noGrapes = true;
             System.out.println(grapes + " grapes left");
         }
         return this;
@@ -81,6 +83,11 @@ public class Embosser extends AbstractBehavior<Storager.Provider> {
         } else {
             storager.tell(new Storager.GetJuice(createdJuice));
             System.out.println("Embossing Success");
+        }
+
+        if (slots == freeSlots && noGrapes) {
+            System.out.println("Embossing stopped");
+            return Behaviors.stopped();
         }
         return this;
     }
