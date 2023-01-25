@@ -12,7 +12,7 @@ public class Main {
     private static void performRandomOperations(int threads, int seconds) {
         ExecutorService executor = Executors.newFixedThreadPool(threads + 1);
 
-        for (int i = 0; i < threads - 1; i++) {
+        for (int i = 0; i < threads; i++) {
             executor.execute(new MyThread());
         }
         executor.execute(new Counter(seconds - 1));
